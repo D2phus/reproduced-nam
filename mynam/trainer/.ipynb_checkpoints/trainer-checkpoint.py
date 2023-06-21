@@ -1,3 +1,4 @@
+"""trainer class for model training and evaluation"""
 from types import SimpleNamespace
 from typing import Mapping
 from typing import Sequence
@@ -5,15 +6,16 @@ from typing import Sequence
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import wandb
-from tqdm.autonotebook import tqdm # progress bar 
 
-from config import Config
+import wandb
+from tqdm.autonotebook import tqdm # progress bar
+from utils.loggers import TensorBoardLogger
+
 from models.saver import Checkpointer
 from .losses import penalized_loss
 from .metrics import accuracy
 from .metrics import mae
-from utils.loggers import TensorBoardLogger
+
 from ray import tune
 
 class Trainer: 
@@ -22,18 +24,18 @@ class Trainer:
                  model: Sequence[nn.Module], 
                  dataset: torch.utils.data.Dataset
                 ) -> None:
-        self.config = Config(**vars(config)) # modification can be made to the default Config
-        self.optimizer = torch.optim.Adam(model.parameters(), lr=self.config.lr, weight_decay=self.config.decay_rate) 
-        self.dataset = dataset
+        self.config = config
         self.model = model
+        self.optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.decay_rate) 
+        self.dataset = dataset
         
-        self.writer = TensorBoardLogger(config)
+        self.writer = TensorBoardLogger(config) 
         self.checkpointer = Checkpointer(model=model, config=config)
         
         if config.wandb:
-            wandb.watch(models=self.model, log='all', log_freq=10)
+            wandb.watch(models=model, log='all', log_freq=10)
 
-        self.criterion = lambda nam_out, fnn_out, targets: penalized_loss(self.config, nam_out, fnn_out, self.model, targets)
+        self.criterion = lambda nam_out, fnn_out, targets: penalized_loss(config, nam_out, fnn_out, model, targets)
         self.metrics = lambda nam_out, targets: mae(nam_out, targets) if config.regression else accuracy(nam_out, targets)
         self.metrics_name = "MAE" if config.regression else "Accuracy"
         
@@ -133,17 +135,17 @@ class Trainer:
                 # trains model on whole training dataset
                 loss_train, metrics_train = self.train_epoch()
                 # writes on TensorBoard
-                self.writer.write({
-                    "loss_train_epoch": loss_train.detach().cpu().numpy().item(),
-                    f"{self.metrics_name}_train_epoch": metrics_train,
-                })
+                # self.writer.write({
+                  #  "loss_train_epoch": loss_train.detach().cpu().numpy().item(),
+                  #  f"{self.metrics_name}_train_epoch": metrics_train,
+                #})
 
                 # Evaluates model on whole validation dataset, and writes on `TensorBoard`.
                 loss_val, metrics_val = self.evaluate_epoch(self.model, self.dataloader_val)
-                self.writer.write({
-                    "loss_val_epoch": loss_val.detach().cpu().numpy().item(),
-                    f"{self.metrics_name}_val_epoch": metrics_val,
-                })
+                #self.writer.write({
+                 #   "loss_val_epoch": loss_val.detach().cpu().numpy().item(),
+                  #  f"{self.metrics_name}_val_epoch": metrics_val,
+                #})
 
                 # Checkpoint model weights.
                 if epoch % self.config.save_model_frequency == 0:
@@ -169,10 +171,10 @@ class Trainer:
                 # Evaluates model on whole validation dataset, and writes on `TensorBoard`.
                 loss_test, metrics_test = self.evaluate_epoch(self.model, self.dataloader_test)
                 # tune.report(loss_test=loss_test.detach().cpu().numpy().item())
-                self.writer.write({
-                    "loss_test_epoch": loss_test.detach().cpu().numpy().item(),
-                    f"{self.metrics_name}_test_epoch": metrics_test,
-                })
+                #self.writer.write({
+                 #   "loss_test_epoch": loss_test.detach().cpu().numpy().item(),
+                  #  f"{self.metrics_name}_test_epoch": metrics_test,
+                #})
 
                 # Updates progress bar description.
                 pbar_epoch.set_description("Test Loss: {:.2f} ".format(loss_test.detach().cpu().numpy().item()))

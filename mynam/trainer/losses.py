@@ -1,3 +1,4 @@
+"""penalized loss for training"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,6 +12,9 @@ def mse_loss(
 )-> torch.Tensor:
     """
     Mean squared error loss for regression 
+    Args:
+    logits of shape (batch_size): the predictions
+    targets of shape (batch_size): the targets
     """
     return F.mse_loss(logits.view(-1), targets.view(-1))
 
@@ -23,11 +27,12 @@ def bce_loss(
     
     Args:
     logits of shape (batch_size)
-    targets of shape (batch_size, 1)
+    targets of shape (batch_size), binary classification
     """
     # note that we use bce instead of ce
     # return F.cross_entropy(logits, targets)
-    return F.binary_cross_entropy_with_logits(logits.view(-1), targets.view(-1)) # convert to 1d vector 
+    # view is not necessary
+    return F.binary_cross_entropy_with_logits(logits.view(-1), targets.view(-1)) 
     
 def penalized_loss(
     config, 
@@ -64,14 +69,11 @@ def penalized_loss(
         Penalizes the L2 norm of weights in each *feature net*
         
         """
-        # TODO
-        if config.use_dnn:
-            num_networks = 1 
-        else:
-            num_networks = len(model.feature_nns)
+        num_networks = len(model.feature_nns)
         l2_losses = [(p**2).sum() for p in model.parameters()]
         return sum(l2_losses) / num_networks
         
+    print(f"targets shape: {targets.shape}")
     output_regularization = config.output_regularization
     l2_regularization = config.l2_regularization
     

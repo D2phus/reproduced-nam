@@ -1,3 +1,4 @@
+"""metrics for evaluation"""
 import torch 
 
 def rmse(
@@ -6,6 +7,7 @@ def rmse(
 )->torch.Tensor:
     """
     Root mean-squared error for regression 
+    Args:
     """
     criterion = nn.MSELoss()
     loss = torch.sqrt(criterion(logits.view(-1), targets.view(-1)))
@@ -17,6 +19,8 @@ def mae(
 )->torch.Tensor:
     """
     Mean absolute error 
+    Args: 
+    
     """
     return (((logits.view(-1) - targets.view(-1)).abs()).sum() / targets.numel()).item()
 
@@ -26,6 +30,7 @@ def accuracy(
 )-> torch.Tensor:
     """
     Accuracy for classification
+    Args: 
     """
     return (((targets.view(-1) > 0) == (logits.view(-1) > 0.5)).sum() / targets.numel()).item()
     
