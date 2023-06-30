@@ -5,8 +5,8 @@ import torch.nn.functional as F
 class ExU(nn.Module):
     def __init__(
         self, 
-        in_features: int = 1, 
-        out_features: int = 1, 
+        in_features: int, 
+        out_features: int, 
         ) -> None: # type-check
             """
             an exp-centered(ExU) hidden unit, which uses an activation function f (e.g. ReLU-n) to compute h(x) = ReLU_n[exp(w)*(x-b)], where w and b are the weight and bias parameters, and ReLU_n is ReLU capped at n.
@@ -44,10 +44,7 @@ class ExU(nn.Module):
         bias = nn.Parameter(torch.normal(mean=bias_mean, std=0.5))
         
         return weights, bias
-        
-        
-          
-            
+             
     def forward(self, 
                inputs: torch.Tensor, 
                n: int = 1
@@ -66,3 +63,7 @@ class ExU(nn.Module):
         output = self.ReLU_n(n, output)
         # print("relu: ", output)
         return output
+    
+    def extra_repr(self) -> str:
+        return f'in_features={self.in_features}, out_features={self.out_features}'
+    

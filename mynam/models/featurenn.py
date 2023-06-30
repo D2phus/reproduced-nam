@@ -16,32 +16,32 @@ class FeatureNN(nn.Module):
         feature_index: int, 
         ) -> None: # type-check
             """
-            There is a DNN-based sub net for each feature. The architectore for the feature net is selected amongst 
-            1. single hidden layer with standard ReLU units and 3 regular hidden layers,
-            2. single hidden layer with ExU units and 3 regular hidden layers. 
+            There is a DNN-based sub net for each feature. The first hidden lyaer is selected amongst:
+            1. standard ReLU units
+            2. ExU units
             Additionally, dropout layers are added to the end of each hidden layer.
             
             Args:
-            in_features: scalar, size of each input sample 
-            num_units: scalar, number of ExU/LinearReLU hidden units in the single hidden layer 
+            in_features: scalar, size of each input sample; default value = 1
+            num_units: scalar, number of ExU/LinearReLU hidden units in the first hidden layer 
             feature_index: indicate which feature is learn in this subnet
             """
             super(FeatureNN, self).__init__()
-            
+            self.name = name
             self.config = config
             self.in_features = in_features
             self.num_units = num_units
             self.feature_index = feature_index
-            
             # self.dropout = nn.Dropout(p=self.config.dropout)
+            
             hidden_sizes = [self.num_units] + self.config.hidden_sizes
              
             layers = []
             # The first layer is consisted of ExU units
             if self.config.activation == "exu":
-                layers.append(ExU(in_features=self.in_features, out_features=self.num_units))
+                layers.append(ExU(in_features=in_features, out_features=num_units))
             else:
-                layers.append(LinearReLU(in_features=self.in_features, out_features=self.num_units))
+                layers.append(LinearReLU(in_features=in_features, out_features=num_units))
             layers.append(nn.Dropout(p=self.config.dropout))
             
             # followed by several standard relu layers
@@ -63,7 +63,8 @@ class FeatureNN(nn.Module):
         
         """
         outputs = inputs.unsqueeze(1) # TODO: of shape (batch_size, 1)?
-        return self.model(outputs)
+        outputs = self.model(outputs)
+        return outputs
         # for layer in self.model:
-          #   outputs = self.dropout(layer(outputs)) # Dropout to regularzie ExUs in each feature net.
+          #  outputs = self.dropout(layer(outputs)) # Dropout to regularzie ExUs in each feature net.
         # return outputs 

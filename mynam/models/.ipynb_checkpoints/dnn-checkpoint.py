@@ -36,8 +36,6 @@ class DNN(nn.Module):
                 layers.append(self.dropout)
                 
             layers.append(nn.Linear(hidden_sizes[-1], out_features,  bias=True))
-            layers.append(nn.ReLU())
-            layers.append(self.dropout)
             
             self.model = nn.Sequential(*layers)
             self.apply(self.initialize_parameters) # note: apply function will recursively applies fn to every submodule
@@ -58,5 +56,6 @@ class DNN(nn.Module):
         inputs of shape (batch_size, in_features)
         Returns: 
         outputs of shape (batch_size, out_features)
+        None for feature neural net outputs 
         """
-        return self.model(inputs)
+        return self.model(inputs), None

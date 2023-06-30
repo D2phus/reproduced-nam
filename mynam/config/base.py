@@ -36,3 +36,9 @@ class Config(SimpleNamespace):
                 setattr(self, key, list(map(self.map_entry, val)))
             else:
                 setattr(self, key, val)
+                
+    def get_dict(self):
+        """
+        return the dict type config
+        """
+        return vars(self)

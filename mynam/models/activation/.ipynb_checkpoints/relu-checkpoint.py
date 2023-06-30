@@ -5,8 +5,8 @@ import torch.nn.functional as F
 class LinearReLU(nn.Module):
     def __init__(
         self, 
-        in_features: int = 1, 
-        out_features: int = 1, # note: output features can be of different dimension to the input features
+        in_features: int, 
+        out_features: int,
         ) -> None: # type-check
             """
             Standard linear ReLU hidden unit.
@@ -42,3 +42,6 @@ class LinearReLU(nn.Module):
         output = torch.matmul((inputs-self.bias), self.weights)
         output = F.relu(output)
         return output
+    
+    def extra_repr(self) -> str:
+        return f'in_features={self.in_features}, out_features={self.out_features}'

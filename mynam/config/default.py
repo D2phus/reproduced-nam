@@ -5,40 +5,36 @@ from .base import Config
 
 def defaults() -> Config:
     config = Config(
-        device='cuda' if torch.cuda.is_available() else 'cpu',
-        seed=2023, 
+        # device='cuda' if torch.cuda.is_available() else 'cpu',
         
-        experiment_name="NAM",
-        regression=False,
-
-        ## training
-        num_epochs=1000,
-        lr=1e-3,
-        batch_size=128,
-
+        # seed=2023, 
+        # experiment_name="NAM",
+        
+        regression=True,
+        use_dnn = False, # baseline 
+        
+        num_epochs=10,
+        batch_size=32,
+        shuffle=True, # shuffle the training set or not 
+        early_stopping_patience=50,  
+        decay_rate=0.005, # 0.005
+        
+        # units_multiplier=2, # adjusted size of the first hidden layer: units_multiplier * unique_value in features 
+        
         ## logs
         logdir="output",
-        wandb=False,
-
-        ## Hidden size for layers
-        hidden_sizes=[64, 64, 32],  #[64, 32],
-
-        ## Activation choice
-        activation='exu',  ## Either `ExU` or `Relu`
-
-        ## regularization_techniques
-        dropout=0.1,
-        feature_dropout=0.1,  #0.5,
-        decay_rate=0.995,
-        l2_regularization=0.1,
-        output_regularization=0.1,
-
-        ## Num units for FeatureNN
-        num_basis_functions=1024,
-        shuffle=True,
-
-        ## Early stopping
-        early_stopping_patience=50,  ## For early stopping
+        wandb=False, 
+        log_loss_frequency=20,
+        
+        # for tuning
+        lr=1e-3,
+        l2_regularization=0, # 1e-6
+        output_regularization=0, # 1e-3
+        dropout=0, # 0.1
+        feature_dropout=0,  #0.1
+        num_basis_functions=64, # size of the first hidden layer 
+        hidden_sizes=[64, 32],  #hidden linear layers' size 
+        activation='relu',  ## first hidden layer type; either `exu` or `relu`
     )
 
     return config

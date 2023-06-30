@@ -56,11 +56,15 @@ def penalized_loss(
         """
         Penalizes the L2 norm of the prediction of each feautre net
         
+        note output penalty is set to zero when we use DNN as baseline
         Args: 
         fnn_out of shape (batch_size, in_features): output of each featrue nn
         """
-        num_fnn = len(fnn_out) # number of feature nets
-        return torch.mean(torch.square(fnn_out), 1).sum() / num_fnn
+        if config.use_dnn:
+            return 0.0
+        else: 
+            num_fnn = len(fnn_out) # number of feature nets
+            return torch.mean(torch.square(fnn_out), 1).sum() / num_fnn
         
     def weight_decay(
         model: nn.Module 
@@ -69,11 +73,10 @@ def penalized_loss(
         Penalizes the L2 norm of weights in each *feature net*
         
         """
-        num_networks = len(model.feature_nns)
+        num_networks = 1 if config.use_dnn else len(model.feature_nns)
         l2_losses = [(p**2).sum() for p in model.parameters()]
         return sum(l2_losses) / num_networks
         
-    print(f"targets shape: {targets.shape}")
     output_regularization = config.output_regularization
     l2_regularization = config.l2_regularization
     

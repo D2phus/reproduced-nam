@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 from typing import Tuple
 from typing import Sequence
+from typing import List
 
 from .featurenn import FeatureNN
 
@@ -14,7 +15,7 @@ class NAM(nn.Module):
         config, 
         name: str, 
         in_features: int,
-        num_units, 
+        num_units: int, 
         ) -> None: # type-check
             """
             The neural additive model learns a linear combination of nerual networks each of which attends to a single input feature. The outputs of subnets are added up, with a scalar bias, and passed through a link function for prediction. 
@@ -27,23 +28,22 @@ class NAM(nn.Module):
             # a feature NN for each feature
             self.in_features = in_features
             self.num_units = num_units
-            self.dropout = nn.Dropout(p=self.config.dropout)
             self.feature_dropout = nn.Dropout(p=self.config.feature_dropout)
             
             # num units for each feature neural net
-            if isinstance(self.num_units, list):
+            if isinstance(num_units, list):
                 assert len(num_units) == in_features, f"Wrong length of num_units: {len(num_units)}"
-            elif isinstance(self.num_units, int):
+            elif isinstance(num_units, int):
                 self.num_units = [num_units for _ in range(self.in_features)]
                 
             # each feature subnet attends to a single input feature
             self.feature_nns = nn.ModuleList([
-                FeatureNN(self.config, 
+                FeatureNN(config, 
                           name=f"FeatureNN_{feature_index}", 
                           in_features=1, 
                           num_units=self.num_units[feature_index], 
                           feature_index=feature_index) # note the in_features shape 
-                for feature_index in range(self.in_features)
+                for feature_index in range(in_features)
             ])
             self.bias = nn.Parameter(data=torch.zeros(1)) # bias of shape (1), initialized with zero
             
@@ -67,4 +67,5 @@ class NAM(nn.Module):
         
         dropout_outputs = self.feature_dropout(cat_outputs) # feature dropout
         outputs = dropout_outputs.sum(dim=-1) # sum along the features => of shape (batch_size)
+        # print(f"nam.forward, nn_outputs: {nn_outputs}, cat_outputs: {cat_outputs}, dropout_outputs: {dropout_outputs}, outputs: {outputs + self.bias}")
         return outputs + self.bias, dropout_outputs # note that outputs + bias => broadcast
