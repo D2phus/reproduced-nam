@@ -28,6 +28,8 @@ class Trainer:
                  model: Sequence[nn.Module], 
                  dataset: torch.utils.data.Dataset,
                 ) -> None:
+        """
+        """
         self.config = config
         self.model = model
         self.optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.decay_rate) 
@@ -105,6 +107,8 @@ class Trainer:
             if epoch % self.config.log_loss_frequency == 0:
                 print(f"loss_train_epoch: {loss_train.detach().cpu().numpy().item()}, {self.metrics_name}_train_epoch: {metrics_train}")
                 print(f"loss_val_epoch: {loss_val.detach().cpu().numpy().item()}, {self.metrics_name}_val_epoch: {metrics_val}")
+                if epoch % 20 == 0:
+                    plot_preds(self.dataset, self.model, epoch)
                 
         
         plot_preds(self.dataset, self.model, num_epochs)

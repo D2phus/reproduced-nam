@@ -13,8 +13,8 @@ def defaults() -> Config:
         regression=True,
         use_dnn = False, # baseline 
         
-        num_epochs=10,
-        batch_size=32,
+        num_epochs=200,
+        batch_size=64,
         shuffle=True, # shuffle the training set or not 
         early_stopping_patience=50,  
         decay_rate=0.005, # 0.005
@@ -24,7 +24,7 @@ def defaults() -> Config:
         ## logs
         logdir="output",
         wandb=False, 
-        log_loss_frequency=20,
+        log_loss_frequency=2,
         
         # for tuning
         lr=1e-3,

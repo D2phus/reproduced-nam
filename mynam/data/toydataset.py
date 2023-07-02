@@ -46,12 +46,12 @@ class ToyDataset(torch.utils.data.Dataset):
         self.gen_funcs = gen_funcs
         self.gen_func_names = gen_func_names
         
-        #self.X = torch.stack([torch.linspace(start=x_start, end=x_end, steps=num_samples)]*in_features, dim=1).float()
         if not use_test:
             X = torch.FloatTensor(num_samples, in_features).uniform_(x_start, x_end)
             self.X, _ = torch.sort(X, dim=1)
         else: 
-            self.X = torch.stack([torch.linspace(start=x_start, end=x_end, steps=num_samples)]*in_features, dim=1).float()
+            # test with duplicated X, so that the additive model can be visualized in 2d plotting.
+            self.X = torch.stack([torch.FloatTensor(num_samples, 1).uniform_(x_start, x_end)]*in_features, dim=1).float()
         self.feature_outs = torch.stack([gen_funcs[index](x_i) for index, x_i in enumerate(torch.unbind(self.X, dim=1))], dim=1) # (batch_size, in_features) 
         self.y = self.feature_outs.sum(dim=1) # of shape (batch_size)
         

@@ -1,0 +1,23 @@
+{
+  "activation": "relu",
+  "batch_size": 64,
+  "decay_rate": 0.005,
+  "dropout": 0.0,
+  "early_stopping_patience": 50,
+  "feature_dropout": 0.0,
+  "hidden_sizes": [
+    64,
+    32
+  ],
+  "l2_regularization": 8.952911771972248e-05,
+  "log_loss_frequency": 2,
+  "logdir": "output",
+  "lr": 0.0015106552574008852,
+  "num_basis_functions": 64,
+  "num_epochs": 200,
+  "output_regularization": 0.006198998047871198,
+  "regression": true,
+  "shuffle": true,
+  "use_dnn": false,
+  "wandb": false
+}

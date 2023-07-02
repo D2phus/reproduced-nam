@@ -1,0 +1,23 @@
+{
+  "activation": "exu",
+  "batch_size": 64,
+  "decay_rate": 0.005,
+  "dropout": 0.5,
+  "early_stopping_patience": 50,
+  "feature_dropout": 0.05,
+  "hidden_sizes": [
+    64,
+    32
+  ],
+  "l2_regularization": 1.4469032723794865e-05,
+  "log_loss_frequency": 2,
+  "logdir": "output",
+  "lr": 0.0032648300061784426,
+  "num_basis_functions": 64,
+  "num_epochs": 200,
+  "output_regularization": 0.022403233618674665,
+  "regression": true,
+  "shuffle": true,
+  "use_dnn": false,
+  "wandb": false
+}
