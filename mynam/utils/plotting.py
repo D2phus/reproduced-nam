@@ -20,7 +20,7 @@ def plot_preds(dataset: torch.utils.data.Dataset,
         preds_out, preds_fnn_outs = model(X)
         preds_out, preds_fnn_outs = preds_out.detach().numpy(), preds_fnn_outs.detach().numpy()
         
-        fig, axs = plt.subplots(1, in_features+1, figsize=(10, 2), constrained_layout=True) 
+        fig, axs = plt.subplots(1, in_features, figsize=(10, 2), constrained_layout=True) 
         fig.suptitle(f"epoch={num_epoch}")
         for index in range(in_features): 
             axs[index].plot(X[:, index], feature_outs[:, index], '.', label="targeted")
@@ -28,9 +28,11 @@ def plot_preds(dataset: torch.utils.data.Dataset,
             axs[index].plot(X[:, index], preds_fnn_outs[:, index], '.', label="predicted")
             axs[index].set_title(gen_func_names[index])
             axs[index].legend()
-        axs[-1].plot(X[:, 0], y, '.', label="targeted")
-        axs[-1].plot(X[:, 0], preds_out, '.', label="predicted")
-        axs[-1].set_title(task_name)
+        #axs[-1].plot(X[:, 0], y, '.', label="targeted")
+        #axs[-1].plot(X[:, 0], preds_out, '.', label="predicted")
+        #axs[-1].set_title(task_name)
+        
+        return fig
         
         
 def plot_training(num_epochs: int, 

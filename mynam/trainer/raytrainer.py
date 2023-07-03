@@ -26,8 +26,6 @@ from utils.plotting import *
 from ray import tune
 from ray.air import Checkpoint, session
 
-# import wandb
-
 def train(config: dict, 
           dataset: torch.utils.data.Dataset
          ):
@@ -36,13 +34,6 @@ def train(config: dict,
        https://pytorch.org/tutorials/beginner/hyperparameter_tuning_tutorial.html
     
         """
-        # wandb configuration 
-#         wandb.login()
-#         wandb.init(
-#             project='nam', 
-#             config=config,
-#         )
-        
         config = Config(**config)
         model = NAM(config=config, name="NAM_FINE_TUNE", in_features=len(dataset[0][0]), num_units=config.num_basis_functions)
         

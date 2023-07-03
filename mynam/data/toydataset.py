@@ -10,6 +10,9 @@ from typing import Sequence
 import matplotlib.pyplot as plt 
 
 from torch.utils.data import random_split 
+
+from .generator import *
+
 class ToyDataset(torch.utils.data.Dataset):
     def __init__(self,
                  task_name: str, 
@@ -47,16 +50,18 @@ class ToyDataset(torch.utils.data.Dataset):
         self.gen_func_names = gen_func_names
         
         if not use_test:
+            # train with random X
             X = torch.FloatTensor(num_samples, in_features).uniform_(x_start, x_end)
             self.X, _ = torch.sort(X, dim=1)
         else: 
             # test with duplicated X, so that the additive model can be visualized in 2d plotting.
-            self.X = torch.stack([torch.FloatTensor(num_samples, 1).uniform_(x_start, x_end)]*in_features, dim=1).float()
+            self.X = torch.cat([torch.FloatTensor(num_samples, 1).uniform_(x_start, x_end)]*in_features, dim=1).float()
+        
         self.feature_outs = torch.stack([gen_funcs[index](x_i) for index, x_i in enumerate(torch.unbind(self.X, dim=1))], dim=1) # (batch_size, in_features) 
         self.y = self.feature_outs.sum(dim=1) # of shape (batch_size)
+        self.y = self.y + gaussian_noise(self.y) # plus a noise
         
         self.setup_dataloaders() 
-        print(self.test_subset)
        
     def __len__(self):
         return len(self.X)
