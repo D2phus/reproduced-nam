@@ -13,8 +13,8 @@ def defaults() -> Config:
         regression=True,
         use_dnn = False, # baseline 
         
-        num_epochs=100,
-        batch_size=64,
+        num_epochs=10,
+        batch_size=128,
         shuffle=True, # shuffle the training set or not 
         early_stopping_patience=50,  
         decay_rate=0.005, # 0.005
@@ -24,7 +24,7 @@ def defaults() -> Config:
         ## logs
         logdir="output",
         wandb=False, 
-        log_loss_frequency=20,
+        log_loss_frequency=10,
         
         # for tuning
         lr=1e-3,
@@ -34,7 +34,7 @@ def defaults() -> Config:
         feature_dropout=0,  #0.1
         num_basis_functions=64, # size of the first hidden layer 
         hidden_sizes=[64, 32],  #hidden linear layers' size 
-        activation='relu',  ## first hidden layer type; either `exu` or `relu`
+        activation='exu',  ## first hidden layer type; either `exu` or `relu`
     )
 
     return config

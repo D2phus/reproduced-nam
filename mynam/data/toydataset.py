@@ -23,7 +23,7 @@ class ToyDataset(torch.utils.data.Dataset):
                  x_end: float, 
                  gen_funcs: Sequence,
                  gen_func_names: Sequence, 
-                 use_test: bool = False
+                 use_test: bool = False, 
                  )-> None:
         """
         dataset generated with additive model consisted of synthetic functions. 
@@ -49,17 +49,16 @@ class ToyDataset(torch.utils.data.Dataset):
         self.gen_funcs = gen_funcs
         self.gen_func_names = gen_func_names
         
-        if not use_test:
-            # train with random X
-            X = torch.FloatTensor(num_samples, in_features).uniform_(x_start, x_end)
-            self.X, _ = torch.sort(X, dim=1)
-        else: 
-            # test with duplicated X, so that the additive model can be visualized in 2d plotting.
-            self.X = torch.cat([torch.FloatTensor(num_samples, 1).uniform_(x_start, x_end)]*in_features, dim=1).float()
+        # uniformly sampled X
+        self.X = torch.FloatTensor(num_samples, in_features).uniform_(x_start, x_end)
+#         X = ((x_end - x_start) * torch.rand(num_samples, in_features) + x_start).type(torch.FloatTensor)
+        if use_test: 
+            self.X, _ = torch.sort(self.X, dim=0) # don't sort when training => correlation! 
         
         self.feature_outs = torch.stack([gen_funcs[index](x_i) for index, x_i in enumerate(torch.unbind(self.X, dim=1))], dim=1) # (batch_size, in_features) 
-        self.y = self.feature_outs.sum(dim=1) # of shape (batch_size)
-        self.y = self.y + gaussian_noise(self.y) # plus a noise
+        
+        y = self.feature_outs.sum(dim=1) # of shape (batch_size)
+        self.y = y + gaussian_noise(y) # y = f(x) + e, where e is random Gaussian noise generated from N(0, 1)
         
         self.setup_dataloaders() 
        
@@ -68,17 +67,17 @@ class ToyDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, ...]:
         return self.X[idx], self.y[idx]
-    
+
     def plot(self):
         """
-        plot each feature and the additive model
+        plot each features on the whole dataset.
         """
-        fig, axs = plt.subplots(1, self.in_features+1, figsize=(10, 2)) 
+        fig, axs = plt.subplots(1, self.in_features, figsize=(12, 2)) 
         for index in range(self.in_features): 
             axs[index].plot(self.X[:, index], self.feature_outs[:, index], '.')
             axs[index].set_title(self.gen_func_names[index])
-        axs[-1].plot(self.X[:, 0], self.y, '.')
-        axs[-1].set_title(self.task_name)
+#         axs[-1].plot(self.X[:, 0], self.y, '.')
+#         axs[-1].set_title(self.task_name)
         
     def plot_subset(self):
         """
@@ -117,6 +116,3 @@ class ToyDataset(torch.utils.data.Dataset):
     def get_dataloaders(self) -> Tuple[DataLoader, ...]: 
         return self.train_dl, self.val_dl, self.test_dl
     
-    def get_subsets(self) -> Tuple[torch.utils.data.Dataset, ...]: 
-        return self.train_subset, self.val_subset, self.test_subset
-        

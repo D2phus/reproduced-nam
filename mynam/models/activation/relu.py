@@ -29,7 +29,11 @@ class LinearReLU(nn.Module):
         - bias: N(0, 0.5²)
         """
         nn.init.xavier_uniform_(self.weights)
-        torch.nn.init.trunc_normal_(self.bias, std=0.5) # note 
+        #torch.nn.init.trunc_normal_(self.bias, std=0.5) # note 
+        
+        bias_mean = torch.zeros(self.in_features)
+        self.bias = nn.Parameter(torch.normal(mean=bias_mean, std=0.5))
+        
           
             
     def forward(self, 

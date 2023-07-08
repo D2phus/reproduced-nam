@@ -26,7 +26,8 @@ from utils.plotting import *
 import wandb
 
 def sweep_train(config: dict, 
-          dataset: torch.utils.data.Dataset
+                dataset: torch.utils.data.Dataset, 
+                testset: torch.utils.data.Dataset, 
          ):
         """
        tune hyper-parameters with wandb
@@ -38,12 +39,15 @@ def sweep_train(config: dict,
         
         # update configurations based on sweeps
         config.update(**wandb.config)
-        print(config)
+        print(f"Configuration: {config}")
         
         # set up model, optimizer, and criterion
         model = NAM(config=config, name="NAM_WANDB", in_features=len(dataset[0][0]), num_units=config.num_basis_functions)
+        wandb.watch(model, log_freq=config.log_loss_frequency) # watch_gradient 
+        print(f"Model summary: {model}")
         optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.decay_rate) 
         criterion = lambda nam_out, fnn_out, model, targets: penalized_loss(config, nam_out, fnn_out, model, targets)
+        
         metrics = lambda nam_out, targets: mae(nam_out, targets) if config.regression else accuracy(nam_out, targets)
         metrics_name = "MAE" if config.regression else "Accuracy"
         val_metrics_name = "val_" + metrics_name
@@ -57,9 +61,6 @@ def sweep_train(config: dict,
             loss_train, metrics_train = train_epoch(criterion, metrics, optimizer, model, dataloader_train)
             loss_val, metrics_val = evaluate_epoch(criterion, metrics, model, dataloader_val)
             
-            # https://docs.wandb.ai/ref/python/log
-            # fitting for individual features
-            
             wandb.log({
                 "epoch": epoch, 
                 "train_loss": loss_train, 
@@ -68,7 +69,16 @@ def sweep_train(config: dict,
                 val_metrics_name: metrics_val, # same for swweep configuration and log 
             })
             
+            # https://docs.wandb.ai/ref/python/log
+            # https://docs.wandb.ai/guides/track/limits, about the log frequency rule
+            # fitting for individual features
+            if epoch % config.log_loss_frequency == 0: 
+                fig = plot_preds(testset, model, epoch)
+                wandb.log({
+                    "regression": fig
+                })
                 
+            
+            
         print("Finished Training.")
-        
         

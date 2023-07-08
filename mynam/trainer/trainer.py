@@ -22,7 +22,6 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.join(os.getcwd()))) 
 from utils.plotting import *
-from models.nam import NAM
 
 
 class Trainer: 
@@ -30,14 +29,18 @@ class Trainer:
                 config: SimpleNamespace, 
                  model: Sequence[nn.Module], 
                  dataset: torch.utils.data.Dataset,
+                 testset: torch.utils.data.Dataset,
                 ) -> None:
         """
+        dataset: for training. 
+        testset: for test. the value of X is ordered in ascending. 
         """
         self.config = config
     
         self.model = model
         self.optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.decay_rate) 
         self.dataset = dataset
+        self.testset = testset
     
         self.criterion = lambda nam_out, fnn_out, model, targets: penalized_loss(self.config, nam_out, fnn_out, model, targets)
         self.metrics_name = "MAE" if config.regression else "Accuracy"
@@ -111,28 +114,31 @@ class Trainer:
             
             # print statistics
             if epoch % self.config.log_loss_frequency == 0:
+                print(f"==============EPOCH {epoch}================")
                 print(f"loss_train_epoch: {loss_train.detach().cpu().numpy().item()}, {self.metrics_name}_train_epoch: {metrics_train}")
                 print(f"loss_val_epoch: {loss_val.detach().cpu().numpy().item()}, {self.metrics_name}_val_epoch: {metrics_val}")
-                if epoch % 20 == 0:
-                    plot_preds(self.dataset, self.model, epoch)
+            if epoch % 20 == 0:
+                print("The parameter values:")
+                for name, param in self.model.named_parameters():
+                    if param.requires_grad:
+                        print(name, param.data)
+                plot_preds(self.testset, self.model, epoch)
                 
-        plot_preds(self.dataset, self.model, num_epochs)
+        plot_preds(self.testset, self.model, num_epochs)
         plot_training(num_epochs, losses_train, metricses_train, losses_val, metricses_val)
         return losses_train, metricses_train, losses_val, metricses_val
     
     
-    def test(self, testset):
+    def test(self):
         """
         test models with mini-batch 
         """
         num_epochs = self.config.num_epochs
-        test_dl = DataLoader(testset, batch_size=self.config.batch_size, shuffle=False)
         #with tqdm(range(num_epochs)) as pbar_epoch:
          #   for epoch in pbar_epoch:
         for epoch in range(num_epochs):
-            loss_test, metrics_test = evaluate_epoch(self.criterion, self.metrics, self.model, test_dl)
+            loss_test, metrics_test = evaluate_epoch(self.criterion, self.metrics, self.model, self.dataloader_test)
         print(f"loss_test_epoch: {loss_test.detach().cpu().numpy().item()}, {self.metrics_name}_test_epoch: {metrics_test}")
-        plot_preds(testset, self.model, num_epochs)
         
 
         
