@@ -117,12 +117,13 @@ class Trainer:
                 print(f"==============EPOCH {epoch}================")
                 print(f"loss_train_epoch: {loss_train.detach().cpu().numpy().item()}, {self.metrics_name}_train_epoch: {metrics_train}")
                 print(f"loss_val_epoch: {loss_val.detach().cpu().numpy().item()}, {self.metrics_name}_val_epoch: {metrics_val}")
-            if epoch % 20 == 0:
-                print("The parameter values:")
-                for name, param in self.model.named_parameters():
-                    if param.requires_grad:
-                        print(name, param.data)
-                plot_preds(self.testset, self.model, epoch)
+                #if epoch % 20 == 0: 
+                #    plot_preds(self.testset, self.model, epoch)
+                
+        #print("The parameter values:")
+        #for name, param in self.model.named_parameters():
+        #    if param.requires_grad:
+        #        print(name, param.data)
                 
         plot_preds(self.testset, self.model, num_epochs)
         plot_training(num_epochs, losses_train, metricses_train, losses_val, metricses_val)

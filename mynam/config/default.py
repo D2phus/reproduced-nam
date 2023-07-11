@@ -8,12 +8,12 @@ def defaults() -> Config:
         # device='cuda' if torch.cuda.is_available() else 'cpu',
         
         # seed=2023, 
-        # experiment_name="NAM",
+        experiment_name="nam-sparse-features-2",
         
         regression=True,
         use_dnn = False, # baseline 
         
-        num_epochs=10,
+        num_epochs=100,
         batch_size=128,
         shuffle=True, # shuffle the training set or not 
         early_stopping_patience=50,  
@@ -22,7 +22,7 @@ def defaults() -> Config:
         # units_multiplier=2, # adjusted size of the first hidden layer: units_multiplier * unique_value in features 
         
         ## logs
-        logdir="output",
+        logdir="./output",
         wandb=False, 
         log_loss_frequency=10,
         

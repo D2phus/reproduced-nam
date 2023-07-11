@@ -1,4 +1,6 @@
 """Dataset class for synthetic data"""
+import math 
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,10 +74,15 @@ class ToyDataset(torch.utils.data.Dataset):
         """
         plot each features on the whole dataset.
         """
-        fig, axs = plt.subplots(1, self.in_features, figsize=(12, 2)) 
+        cols = 4
+        rows = math.ceil(self.in_features / cols)
+        fig, axs = plt.subplots(rows, cols)
+        fig.tight_layout()
         for index in range(self.in_features): 
-            axs[index].plot(self.X[:, index], self.feature_outs[:, index], '.')
-            axs[index].set_title(self.gen_func_names[index])
+            col = index % cols 
+            row = math.floor(index / cols)
+            axs[row, col].plot(self.X[:, index], self.feature_outs[:, index], '.')
+            axs[row, col].set_title(f"X{index}")
 #         axs[-1].plot(self.X[:, 0], self.y, '.')
 #         axs[-1].set_title(self.task_name)
         
