@@ -1,6 +1,5 @@
 # reproduced-nam
 Reproduce the NAM (Neural Research Models) proposed by Google Research. 
-
 ```
 @misc{kayid2020nams,
   title={Neural additive models Library},
@@ -8,3 +7,4 @@ Reproduce the NAM (Neural Research Models) proposed by Google Research.
   year={2020}
 }
 ```
+https://github.com/AmrMKayid/nam
