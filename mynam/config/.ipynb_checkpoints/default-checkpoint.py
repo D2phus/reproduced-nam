@@ -5,10 +5,9 @@ from .base import Config
 
 def defaults() -> Config:
     config = Config(
-        # device='cuda' if torch.cuda.is_available() else 'cpu',
+        experiment_name="NAM-grid-1",
         
-        # seed=2023, 
-        experiment_name="nam-sparse-features-2",
+        prior_sigma_noise=0.7,
         
         regression=True,
         use_dnn = False, # baseline 
@@ -19,22 +18,21 @@ def defaults() -> Config:
         early_stopping_patience=50,  
         decay_rate=0.005, # 0.005
         
-        # units_multiplier=2, # adjusted size of the first hidden layer: units_multiplier * unique_value in features 
-        
         ## logs
         logdir="./output",
         wandb=False, 
-        log_loss_frequency=10,
+        log_loss_frequency=20,
         
         # for tuning
         lr=1e-3,
-        l2_regularization=0, # 1e-6
+        l2_regularization=1e-5, 
         output_regularization=0, # 1e-3
         dropout=0, # 0.1
         feature_dropout=0,  #0.1
         num_basis_functions=64, # size of the first hidden layer 
-        hidden_sizes=[64, 32],  #hidden linear layers' size 
+        hidden_sizes=[],  #hidden linear layers' size 
         activation='exu',  ## first hidden layer type; either `exu` or `relu`
+        
     )
 
     return config

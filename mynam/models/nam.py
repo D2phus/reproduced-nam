@@ -59,8 +59,11 @@ class NAM(nn.Module):
         inputs of shape (batch_size, in_features): input samples, 
         
         Returns: 
-        nam output of shape (batch_size): add up the outputs of feature nets and bias
-        fnn outputs of shape (batch_size, in_features): output of each feature net
+        nam mean of shape (batch_size): add up the means of feature nets and bias
+        nam variance of shape (batch_size): add up the variance of feature nets
+        
+        fnn mean of shape (batch_size, in_features): mean of each feature net
+        fnn var of shape (batch_size, in_features): variance of each feature net 
         """
         nn_outputs = self.features_output(inputs) # list [Tensor(batch_size,  1)]
         cat_outputs = torch.cat(nn_outputs, dim=-1) # of shape (batch_size, in_features)
@@ -68,4 +71,17 @@ class NAM(nn.Module):
         dropout_outputs = self.feature_dropout(cat_outputs) # feature dropout
         outputs = dropout_outputs.sum(dim=-1) # sum along the features => of shape (batch_size)
         # print(f"nam.forward, nn_outputs: {nn_outputs}, cat_outputs: {cat_outputs}, dropout_outputs: {dropout_outputs}, outputs: {outputs + self.bias}")
-        return outputs + self.bias, dropout_outputs # note that outputs + bias => broadcast
+        return outputs + self.bias, dropout_outputs
+#         fnn_out_list = self.features_output(inputs) # list [Tensor(batch_size,  2)]
+#         stacked_out = torch.permute(torch.stack(fnn_out_list), (1, 0, -1))
+#         mean = stacked_out[:, :, 0] # (batch_size, in_features)
+#         var = stacked_out[:, :, 1]
+        
+#         dropout_mean =  self.feature_dropout(mean)
+#         dropout_var =  self.feature_dropout(var)
+        
+#         additive_mean = dropout_mean.sum(dim=-1)
+#         additive_var = dropout_var.sum(dim=-1)
+#         # print(f"nam.forward, nn_outputs: {nn_outputs}, cat_outputs: {cat_outputs}, dropout_outputs: {dropout_outputs}, outputs: {outputs + self.bias}")
+        
+#         return additive_mean + self.bias, additive_var, dropout_mean, dropout_var # note that outputs + bias => broadcast

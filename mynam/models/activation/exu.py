@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
 
 class ExU(nn.Module):
     def __init__(
@@ -17,7 +18,11 @@ class ExU(nn.Module):
             super(ExU, self).__init__()
             self.in_features = in_features
             self.out_features = out_features
-            self.weights, self.bias = self.initialize_parameters()  
+            
+            self.weight = Parameter(torch.Tensor(in_features, out_features))
+            self.bias = Parameter(torch.Tensor(in_features))
+            #self.weights, self.bias = self.initialize_parameters() 
+            self.reset_parameters()
             
     def ReLU_n(self, n, x):
         """
@@ -45,6 +50,12 @@ class ExU(nn.Module):
         
         return weights, bias
              
+    def reset_parameters(self) -> None:
+        ## Page(4): initializing the weights using a normal distribution
+        ##          N(x; 0:5) with x 2 [3; 4] works well in practice.
+        torch.nn.init.trunc_normal_(self.weights, mean=4.0, std=0.5)
+        torch.nn.init.trunc_normal_(self.bias, std=0.5)
+
     def forward(self, 
                inputs: torch.Tensor, 
                n: int = 1
@@ -55,13 +66,9 @@ class ExU(nn.Module):
         
         """
         # note: matrix product!
-        # print("exp:", exp_cofficient)
+        self.n = n # save `n` for derivative calculation
         output = (inputs-self.bias).matmul(torch.exp(self.weights))
-        # print("output:", output)
-        # ReLU-n
-        # relu_n = ReLU_n(n)
         output = self.ReLU_n(n, output)
-        # print("relu: ", output)
         return output
     
     def extra_repr(self) -> str:

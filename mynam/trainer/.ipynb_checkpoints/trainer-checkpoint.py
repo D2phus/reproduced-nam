@@ -16,76 +16,33 @@ from .metrics import accuracy
 from .metrics import mae
 from .epoch import *
 
-from config import Config
-
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.join(os.getcwd()))) 
-from utils.plotting import *
-
 
 class Trainer: 
     def __init__(self, 
                 config: SimpleNamespace, 
                  model: Sequence[nn.Module], 
-                 dataset: torch.utils.data.Dataset,
-                 testset: torch.utils.data.Dataset,
+                 trainset: torch.utils.data.dataset,
+                 valset: torch.utils.data.dataset, 
+                 testset=None
                 ) -> None:
-        """
-        dataset: for training. 
-        testset: for test. the value of X is ordered in ascending. 
-        """
         self.config = config
     
         self.model = model
         self.optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.decay_rate) 
-        self.dataset = dataset
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, gamma=0.995, step_size=1)
+        self.trainset = trainset
+        self.valset = valset
         self.testset = testset
+        
+        self.dataloader_train = trainset.loader
+        self.dataloader_val = valset.loader
+        if testset is not None: 
+            self.dataloader_test = testset.loader
+            
     
         self.criterion = lambda nam_out, fnn_out, model, targets: penalized_loss(self.config, nam_out, fnn_out, model, targets)
         self.metrics_name = "MAE" if config.regression else "Accuracy"
         self.metrics = lambda nam_out, targets: mae(nam_out, targets) if config.regression else accuracy(nam_out, targets)
-        
-        self.dataloader_train, self.dataloader_val, self.dataloader_test = self.dataset.get_dataloaders()
-        
-    
-    def train_step(
-        self, 
-        model: nn.Module, 
-        batch: torch.Tensor, 
-    ) -> torch.Tensor:
-        """
-        Perform a single mini-batch gredient-descient optimization step.
-        """
-        features, targets = batch
-        self.optimizer.zero_grad()
-
-        preds, fnn_out = model(features)
-        
-        loss = self.criterion(preds, fnn_out, model, targets)
-        metrics = self.metrics(preds, targets)
-        
-        loss.backward()
-        
-        self.optimizer.step()
-        
-        return loss, metrics
-    
-
-    def evaluate_step(self, 
-                      model: nn.Module, 
-                      batch: torch.Tensor) -> torch.Tensor:
-
-        features, targets = batch
-
-        # Forward pass from the model.
-        predictions, fnn_out = model(features)
-
-        # Calculates loss on mini-batch.
-        loss = self.criterion(predictions, fnn_out, model, targets)
-        metrics = self.metrics(predictions, targets)
-
-        return loss, metrics
 
     def train(self):
         """
@@ -102,7 +59,7 @@ class Trainer:
         for epoch in range(num_epochs):
         
             # trains model on whole training dataset, compute the training and validation loss & metric
-            loss_train, metrics_train = train_epoch(self.criterion, self.metrics, self.optimizer, self.model, self.dataloader_train)
+            loss_train, metrics_train = train_epoch(self.criterion, self.metrics, self.optimizer, self.model, self.dataloader_train, self.scheduler)
             loss_val, metrics_val = evaluate_epoch(self.criterion, self.metrics, self.model, self.dataloader_val)
             
             
@@ -117,16 +74,7 @@ class Trainer:
                 print(f"==============EPOCH {epoch}================")
                 print(f"loss_train_epoch: {loss_train.detach().cpu().numpy().item()}, {self.metrics_name}_train_epoch: {metrics_train}")
                 print(f"loss_val_epoch: {loss_val.detach().cpu().numpy().item()}, {self.metrics_name}_val_epoch: {metrics_val}")
-                #if epoch % 20 == 0: 
-                #    plot_preds(self.testset, self.model, epoch)
                 
-        #print("The parameter values:")
-        #for name, param in self.model.named_parameters():
-        #    if param.requires_grad:
-        #        print(name, param.data)
-                
-        plot_preds(self.testset, self.model, num_epochs)
-        plot_training(num_epochs, losses_train, metricses_train, losses_val, metricses_val)
         return losses_train, metricses_train, losses_val, metricses_val
     
     
@@ -134,12 +82,13 @@ class Trainer:
         """
         test models with mini-batch 
         """
-        num_epochs = self.config.num_epochs
-        #with tqdm(range(num_epochs)) as pbar_epoch:
-         #   for epoch in pbar_epoch:
-        for epoch in range(num_epochs):
-            loss_test, metrics_test = evaluate_epoch(self.criterion, self.metrics, self.model, self.dataloader_test)
-        print(f"loss_test_epoch: {loss_test.detach().cpu().numpy().item()}, {self.metrics_name}_test_epoch: {metrics_test}")
-        
+        if self.testset is not None: 
+            num_epochs = self.config.num_epochs
+            #with tqdm(range(num_epochs)) as pbar_epoch:
+             #   for epoch in pbar_epoch:
+            for epoch in range(num_epochs):
+                loss_test, metrics_test = evaluate_epoch(self.criterion, self.metrics, self.model, self.dataloader_test)
+            print(f"loss_test_epoch: {loss_test.detach().cpu().numpy().item()}, {self.metrics_name}_test_epoch: {metrics_test}")
 
-        
+
+

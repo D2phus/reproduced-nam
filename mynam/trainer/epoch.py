@@ -17,6 +17,7 @@ def train_epoch(
     optimizer: torch.optim.Adam, 
     model: nn.Module, 
     dataloader: torch.utils.data.DataLoader, 
+    scheduler=None, 
 ) -> torch.Tensor: 
     """
     Perform an epoch of gradient-descent optimization on dataloader 
@@ -40,10 +41,13 @@ def train_epoch(
         
         avg_loss += step_loss
         avg_metrics += step_metrics
+        
+        if scheduler is not None: 
+            scheduler.step()
                 
     return avg_loss / len(dataloader), avg_metrics / len(dataloader)
-    
-    
+
+
 def  evaluate_epoch(
     criterion, 
     metrics, 
@@ -69,4 +73,4 @@ def  evaluate_epoch(
             avg_metrics += step_metrics
 
     return avg_loss / len(dataloader), avg_metrics / len(dataloader)
-    
+

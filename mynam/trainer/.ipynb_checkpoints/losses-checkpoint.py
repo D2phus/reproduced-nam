@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from config import Config
 
 
 def mse_loss(
@@ -33,7 +32,7 @@ def bce_loss(
     # return F.cross_entropy(logits, targets)
     # view is not necessary
     return F.binary_cross_entropy_with_logits(logits.view(-1), targets.view(-1)) 
-    
+
 def penalized_loss(
     config, 
     nam_out: torch.Tensor, 
@@ -60,11 +59,8 @@ def penalized_loss(
         Args: 
         fnn_out of shape (batch_size, in_features): output of each featrue nn
         """
-        if config.use_dnn:
-            return 0.0
-        else: 
-            num_fnn = len(fnn_out) # number of feature nets
-            return torch.mean(torch.square(fnn_out), 1).sum() / num_fnn
+        num_fnn = len(fnn_out) # number of feature nets
+        return torch.mean(torch.square(fnn_out), 1).sum() / num_fnn
         
     def weight_decay(
         model: nn.Module 
@@ -73,7 +69,7 @@ def penalized_loss(
         Penalizes the L2 norm of weights in each *feature net*
         
         """
-        num_networks = 1 if config.use_dnn else len(model.feature_nns)
+        num_networks = len(model.feature_nns)
         l2_losses = [(p**2).sum() for p in model.parameters()]
         return sum(l2_losses) / num_networks
         
@@ -97,4 +93,4 @@ def penalized_loss(
     return loss
     # l = F.cross_entropy(out, targets)
     # F.mse_loss(outputs, targets)
-    
+
