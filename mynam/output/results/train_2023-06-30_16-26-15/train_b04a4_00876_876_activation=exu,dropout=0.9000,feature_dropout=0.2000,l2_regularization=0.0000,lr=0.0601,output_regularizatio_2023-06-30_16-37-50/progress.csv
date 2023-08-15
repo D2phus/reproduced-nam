@@ -1,2 +1,0 @@
-loss,MAE,time_this_iter_s,done,training_iteration,trial_id,date,timestamp,time_total_s,pid,hostname,node_ip,time_since_restore,iterations_since_restore
-tensor(41.0283),6.2654646873474125,3.034886598587036,True,1,b04a4_00876,2023-06-30_16-38-05,1688132285,3.034886598587036,24080,pe8.int.triton.aalto.fi,10.10.100.8,3.034886598587036,1
