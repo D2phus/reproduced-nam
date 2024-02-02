@@ -17,7 +17,7 @@ class LinearReLU(nn.Module):
             super(LinearReLU, self).__init__()
             self.in_features = in_features
             self.out_features = out_features
-            self.weights = nn.Parameter(torch.Tensor(in_features, out_features))
+            self.weight = nn.Parameter(torch.Tensor(in_features, out_features))
             self.bias = nn.Parameter(torch.Tensor(in_features)) # note; a bias for each feature
             
             self.initialize_parameters()  
@@ -29,7 +29,7 @@ class LinearReLU(nn.Module):
         - weights: regular, xavier uniform(why uniform?)
         - bias: N(0, 0.5²)
         """
-        nn.init.xavier_uniform_(self.weights)
+        nn.init.xavier_uniform_(self.weight)
         #torch.nn.init.trunc_normal_(self.bias, std=0.5) # note 
         
         bias_mean = torch.zeros(self.in_features)
@@ -44,7 +44,7 @@ class LinearReLU(nn.Module):
         Args:
         inputs of shape (batch_size, in_features)
         """
-        output = torch.matmul((inputs-self.bias), self.weights)
+        output = torch.matmul((inputs-self.bias), self.weight)
         output = F.relu(output)
         return output
     

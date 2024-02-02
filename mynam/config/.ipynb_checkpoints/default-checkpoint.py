@@ -6,6 +6,7 @@ from .base import Config
 def defaults() -> Config:
     config = Config(
         experiment_name="NAM-grid-1",
+        seed=2023, 
         
         prior_sigma_noise=0.7,
         
@@ -31,7 +32,9 @@ def defaults() -> Config:
         feature_dropout=0,  #0.1
         num_basis_functions=64, # size of the first hidden layer 
         hidden_sizes=[],  #hidden linear layers' size 
-        activation='exu',  ## first hidden layer type; either `exu` or `relu`
+        activation='relu',  ## hidden unit type
+        
+        num_ensemble=10, 
         
     )
 
